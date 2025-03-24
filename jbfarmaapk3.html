@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JB Farma - Kasir Apotek</title>
+    <style>
+            button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+
+    button:hover {
+        background-color: #45a049;
+        transform: scale(1.05);
+    }
+
+
+        body { font-family: Calibri, sans-serif; text-align: center; background: white; color: black; }
+        input, button { padding: 10px; margin: 10px; border-radius: 5px; border: none; }
+       table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px;
+    text-align: center; /* Menyatukan semua teks dan tombol ke tengah */
+    vertical-align: middle; /* Agar sejajar secara vertikal */
+}
+
+tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+        th { font-weight: bold; background-color: #4CAF50; color: white; }
+        td:nth-child(1), td:nth-child(2) { font-weight: bold; }
+        .logo { width: 150px; margin: 20px auto; display: block; }
+        .search-container {
+            display: flex;
+            align-items: center;
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 5px 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .search-container img { width: 30px; margin-right: 10px; }
+        .search-container i {
+            font-size: 1.2em;
+            margin-right: 5px;
+            color: #4CAF50;
+        }
+        .search-container input {
+            border: none;
+            outline: none;
+            padding: 8px;
+            flex-grow: 1;
+        }
+        .cart-container { display: flex; justify-content: center; align-items: center; margin-top: 20px; }
+        .cart-container img { width: 40px; margin-right: 10px; }
+        .tab { display: flex; justify-content: center; margin-bottom: 20px; }
+        .tab button { padding: 10px 20px; margin: 0 5px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 5px; }
+        .content { display: none; }
+        .active { display: block; }
+        .welcome-text { font-family: 'Comic Sans MS', cursive, sans-serif; font-size: 18px; font-weight: bold; }
+    </style>
+    <script>
+        let totalHarga = 0;
+        function bukaTab(namaTab) {
+            document.querySelectorAll('.content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(namaTab).classList.add('active');
+        }
+        function tambahKeKeranjang(nama, harga, button) {
+                let daftarKeranjang = document.getElementById("keranjangList");
+                let row = document.createElement("tr");
+                row.innerHTML = `<td>${nama}</td><td>${harga.toLocaleString("id-ID")}</td><td><button onclick="hapusDariKeranjang(this, ${harga})">Hapus</button></td>`;
+                daftarKeranjang.appendChild(row);
+                totalHarga += harga;
+                document.getElementById("total").innerText = totalHarga.toLocaleString("id-ID");
+
+                button.classList.add("clicked");
+                setTimeout(() => button.classList.remove("clicked"), 200);
+            }
+
+        function hapusDariKeranjang(button, harga) {
+            let row = button.parentElement.parentElement;
+            row.remove();
+            totalHarga -= harga;
+            document.getElementById("total").innerText = totalHarga.toLocaleString("id-ID");
+        }
+        function prosesPembayaran() {
+            let uangDibayar = parseInt(document.getElementById("uangDibayar").value) || 0;
+            let kembalian = uangDibayar - totalHarga;
+            document.getElementById("kembalian").innerText = kembalian >= 0 ? kembalian.toLocaleString("id-ID") : "Uang tidak cukup";
+        }
+        function cariObat() {
+                let input = document.getElementById("search").value.toLowerCase();
+                let rows = Array.from(document.querySelectorAll("tbody tr")); // Ambil semua baris tabel
+                let tbody = document.querySelector("tbody");
+
+                // Filter dan urutkan obat berdasarkan input
+                let filteredRows = rows.filter(row => row.cells[0].innerText.toLowerCase().includes(input));
+
+                // Jika ada hasil, tampilkan yang sesuai & urutkan berdasarkan nama obat
+                if (filteredRows.length > 0) {
+                    filteredRows.sort((a, b) => a.cells[0].innerText.localeCompare(b.cells[0].innerText));
+                    tbody.innerHTML = ""; // Hapus isi tabel
+                    filteredRows.forEach(row => tbody.appendChild(row)); // Tambahkan hasil filter ke tabel
+                } else {
+                    alert("Obat tidak ditemukan!");
+                }
+            }
+
+    </script>
+</head>
+<body>
+    <img src="logo2.png" alt="Logo JB Farma" class="logo">
+    <h2 style="color: black;">JB Farma - Kasir Apotek</h2>
+    
+    <div class="tab">
+        <button onclick="bukaTab('daftar')">Daftar Obat</button>
+        <button onclick="bukaTab('keranjang')">Keranjang & Pembayaran</button>
+    </div>
+    
+    <div id="daftar" class="content active">
+        <div class="search-container">
+            <img src="pencarian.png" alt="Cari">
+            <input type="text" id="search" placeholder="Cari obat...">
+            <button onclick="cariObat()">Cari</button>
+        </div>
+
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama Obat</th>
+                    <th>Harga (Rp)</th>
+                    <th>Tambahkan ke Keranjang</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Paracetamol 500 mg</td>
+                    <td>6.000</td>
+                    <td><button onclick="tambahKeKeranjang('Paracetamol 500 mg', 6000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Ibuprofen 400 mg</td>
+                    <td>8.000</td>
+                    <td><button onclick="tambahKeKeranjang('Ibuprofen 400 mg', 8000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Amoxicillin 500 mg</td>
+                    <td>15.000</td>
+                    <td><button onclick="tambahKeKeranjang('Amoxicillin 500 mg', 15000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Metformin 500 mg</td>
+                    <td>6.000</td>
+                    <td><button onclick="tambahKeKeranjang('Metformin 500 mg', 6000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Amlodipine 5 mg</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Amlodipine 5 mg', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Omeprazole 20 mg</td>
+                    <td>10.000</td>
+                    <td><button onclick="tambahKeKeranjang('Omeprazole 20 mg', 10000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Sanmol tablet</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Sanmol tablet', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Lansoprazole 30 mg Hexpharm</td>
+                    <td>8.000</td>
+                    <td><button onclick="tambahKeKeranjang('Lansoprazole 30 mg Hexpharm', 8000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Cetirizine HCl 10 mg</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('Cetirizine HCl 10 mg', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Prednisone 5 mg</td>
+                    <td>6.000</td>
+                    <td><button onclick="tambahKeKeranjang('Prednisone 5 mg', 6000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Dexamethasone 0.5 mg</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Dexamethasone 0.5 mg', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Salbutamol 2 mg</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Salbutamol 2 mg', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Glibenclamide 5 mg</td>
+                    <td>6.000</td>
+                    <td><button onclick="tambahKeKeranjang('Glibenclamide 5 mg', 6000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Vitamin C IPI</td>
+                    <td>12.000</td>
+                    <td><button onclick="tambahKeKeranjang('Vitamin C IPI', 12000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Vitamin B12 IPI</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Vitamin B12 IPI', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Prove D3 1000 IU Kalbe</td>
+                    <td>34.000</td>
+                    <td><button onclick="tambahKeKeranjang('Prove D3 1000 IU Kalbe', 34000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>CTM tablet</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('CTM tablet', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Asam mefenamat 500 mg</td>
+                    <td>10.000</td>
+                    <td><button onclick="tambahKeKeranjang('Asam mefenamat 500 mg', 10000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Ketoconazole salep</td>
+                    <td>8.000</td>
+                    <td><button onclick="tambahKeKeranjang('Ketoconazole salep', 8000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Chloramfenicol salep</td>
+                    <td>14.000</td>
+                    <td><button onclick="tambahKeKeranjang('Chloramfenicol salep', 14000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Propanolol 10 mg</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('Propanolol 10 mg', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Loratadine 10 mg</td>
+                    <td>4.500</td>
+                    <td><button onclick="tambahKeKeranjang('Loratadine 10 mg', 4500)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Aspirin 100 mg</td>
+                    <td>4.500</td>
+                    <td><button onclick="tambahKeKeranjang('Aspirin 100 mg', 4500)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Diclofenac sodium 50 mg</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Diclofenac sodium 50 mg', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Ambroxol 30 mg</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Ambroxol 30 mg', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Ambroxol syrup</td>
+                    <td>12.000</td>
+                    <td><button onclick="tambahKeKeranjang('Ambroxol syrup', 12000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Allopurinol 100 mg</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('Allopurinol 100 mg', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Diazepam 5 mg</td>
+                    <td>8.000</td>
+                    <td><button onclick="tambahKeKeranjang('Diazepam 5 mg', 8000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Captopril 25 mg</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Captopril 25 mg', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Decolgen</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Decolgen', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Ultraflu</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('Ultraflu', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Betadine 15 ml</td>
+                    <td>20.000</td>
+                    <td><button onclick="tambahKeKeranjang('Betadine 15 ml', 20000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Tolak angin</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('Tolak angin', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Tremenza tablet</td>
+                    <td>23.000</td>
+                    <td><button onclick="tambahKeKeranjang('Tremenza tablet', 23000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Antasida doen</td>
+                    <td>2.000</td>
+                    <td><button onclick="tambahKeKeranjang('Antasida doen', 2000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Amlodipine 5mg HJ /Strip</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('Amlodipine 5mg HJ /Strip', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>UNDERPAD OTO XL (60x90cm) /PCS</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('UNDERPAD OTO XL (60x90cm) /PCS', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Voltaren 50mg /BUTIR</td>
+                    <td>10.000</td>
+                    <td><button onclick="tambahKeKeranjang('Voltaren 50mg /BUTIR', 10000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Metformin 500mg HJ /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Metformin 500mg HJ /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Vicee 500 /BUTIR</td>
+                    <td>1.000</td>
+                    <td><button onclick="tambahKeKeranjang('Vicee 500 /BUTIR', 1000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Captopril 25mg Dexa /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Captopril 25mg Dexa /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Cataflam 50mg /BUTIR</td>
+                    <td>8.500</td>
+                    <td><button onclick="tambahKeKeranjang('Cataflam 50mg /BUTIR', 8500)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Merislon 6mg tab /BUTIR</td>
+                    <td>7.000</td>
+                    <td><button onclick="tambahKeKeranjang('Merislon 6mg tab /BUTIR', 7000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Mycoral Tablet /BUTIR</td>
+                    <td>6.000</td>
+                    <td><button onclick="tambahKeKeranjang('Mycoral Tablet /BUTIR', 6000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Promag Tablet /Strip</td>
+                    <td>11.000</td>
+                    <td><button onclick="tambahKeKeranjang('Promag Tablet /Strip', 11000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Vitamin B Complex KF /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Vitamin B Complex KF /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Bodrex Extra /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Bodrex Extra /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Carbidu 0,5mg /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Carbidu 0,5mg /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Simvastatin 20mg HJ /strip</td>
+                    <td>12.000</td>
+                    <td><button onclick="tambahKeKeranjang('Simvastatin 20mg HJ /strip', 12000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Tolak Angin Dewasa /Sachet</td>
+                    <td>4.500</td>
+                    <td><button onclick="tambahKeKeranjang('Tolak Angin Dewasa /Sachet', 4500)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Betadine Luka 5ml</td>
+                    <td>8.000</td>
+                    <td><button onclick="tambahKeKeranjang('Betadine Luka 5ml', 8000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Bye Bye Fever BAYI /pcs</td>
+                    <td>9.000</td>
+                    <td><button onclick="tambahKeKeranjang('Bye Bye Fever BAYI /pcs', 9000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Cek Gula Darah</td>
+                    <td>15.000</td>
+                    <td><button onclick="tambahKeKeranjang('Cek Gula Darah', 15000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Cendo Xitrol Botol 5ml</td>
+                    <td>38.000</td>
+                    <td><button onclick="tambahKeKeranjang('Cendo Xitrol Botol 5ml', 38000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Glimepiride 1mg Dexa /Strip</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Glimepiride 1mg Dexa /Strip', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Dexaharsen 0,5mg /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Dexaharsen 0,5mg /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Diapet Kapsul isi 10 /Strip</td>
+                    <td>6.000</td>
+                    <td><button onclick="tambahKeKeranjang('Diapet Kapsul isi 10 /Strip', 6000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Dobrizol /Strip</td>
+                    <td>25.000</td>
+                    <td><button onclick="tambahKeKeranjang('Dobrizol /Strip', 25000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Econazine Cream 10 gr</td>
+                    <td>28.000</td>
+                    <td><button onclick="tambahKeKeranjang('Econazine Cream 10 gr', 28000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Enervon Active isi 30 /Botol</td>
+                    <td>47.000</td>
+                    <td><button onclick="tambahKeKeranjang('Enervon Active isi 30 /Botol', 47000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>FG Troches Meiji Antibiotik /Strip</td>
+                    <td>19.000</td>
+                    <td><button onclick="tambahKeKeranjang('FG Troches Meiji Antibiotik /Strip', 19000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Flamar 50mg /Strip</td>
+                    <td>30.000</td>
+                    <td><button onclick="tambahKeKeranjang('Flamar 50mg /Strip', 30000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Gastrucid Tab /Strip</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Gastrucid Tab /Strip', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Glibenclamid 5mg FM /Strip</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Glibenclamid 5mg FM /Strip', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Glucophage 500mg /Strip</td>
+                    <td>25.000</td>
+                    <td><button onclick="tambahKeKeranjang('Glucophage 500mg /Strip', 25000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Ha Fung San /botol</td>
+                    <td>6.000</td>
+                    <td><button onclick="tambahKeKeranjang('Ha Fung San /botol', 6000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Hevit Plus /Strip</td>
+                    <td>15.000</td>
+                    <td><button onclick="tambahKeKeranjang('Hevit Plus /Strip', 15000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Hot in cream DCL 120gr</td>
+                    <td>40.000</td>
+                    <td><button onclick="tambahKeKeranjang('Hot in cream DCL 120gr', 40000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Hufagrip Flu & Batuk (kuning)</td>
+                    <td>26.000</td>
+                    <td><button onclick="tambahKeKeranjang('Hufagrip Flu & Batuk (kuning)', 26000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Hydro Coco Vitamin D 330ml</td>
+                    <td>13.000</td>
+                    <td><button onclick="tambahKeKeranjang('Hydro Coco Vitamin D 330ml', 13000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Ibuprofen 400mg NOVA /strip</td>
+                    <td>7.000</td>
+                    <td><button onclick="tambahKeKeranjang('Ibuprofen 400mg NOVA /strip', 7000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Jarum Insulin Hijau 0.23mm (32G) x 4mm / PCS (HIJAU TUA)</td>
+                    <td>3.000</td>
+                    <td><button
+                            onclick="tambahKeKeranjang('Jarum Insulin Hijau 0.23mm (32G) x 4mm / PCS (HIJAU TUA)', 3000)">Tambah</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Kapsida kapsul /Botol</td>
+                    <td>22.000</td>
+                    <td><button onclick="tambahKeKeranjang('Kapsida kapsul /Botol', 22000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Ketoconazole 200mg HJ /strip</td>
+                    <td>8.000</td>
+                    <td><button onclick="tambahKeKeranjang('Ketoconazole 200mg HJ /strip', 8000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Lanadexon tab /Strip</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Lanadexon tab /Strip', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Lapifed DM sirup 60ml</td>
+                    <td>52.000</td>
+                    <td><button onclick="tambahKeKeranjang('Lapifed DM sirup 60ml', 52000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Larutan Cap Kaki Tiga BOTOL 320ml</td>
+                    <td>9.000</td>
+                    <td><button onclick="tambahKeKeranjang('Larutan Cap Kaki Tiga BOTOL 320ml', 9000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Le Minerale 600ml</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Le Minerale 600ml', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Lerzin sirup 60ML</td>
+                    <td>10.000</td>
+                    <td><button onclick="tambahKeKeranjang('Lerzin sirup 60ML', 10000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Madu Tj /sachet</td>
+                    <td>1.000</td>
+                    <td><button onclick="tambahKeKeranjang('Madu Tj /sachet', 1000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Medicated Oil 20ml</td>
+                    <td>32.000</td>
+                    <td><button onclick="tambahKeKeranjang('Medicated Oil 20ml', 32000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Mefinal 500mg /Strip</td>
+                    <td>22.000</td>
+                    <td><button onclick="tambahKeKeranjang('Mefinal 500mg /Strip', 22000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Micropore besar 5cmx9.1M</td>
+                    <td>37.000</td>
+                    <td><button onclick="tambahKeKeranjang('Micropore besar 5cmx9.1M', 37000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Milku Susu 200ml (Semua Rasa)</td>
+                    <td>4.500</td>
+                    <td><button onclick="tambahKeKeranjang('Milku Susu 200ml (Semua Rasa)', 4500)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Minyak Kapak 10ML</td>
+                    <td>21.000</td>
+                    <td><button onclick="tambahKeKeranjang('Minyak Kapak 10ML', 21000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Miracloven 50mg /Strip</td>
+                    <td>5.000</td>
+                    <td><button onclick="tambahKeKeranjang('Miracloven 50mg /Strip', 5000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Mixagrip Flu dan batuk /strip</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('Mixagrip Flu dan batuk /strip', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Mycoral Salep 5gr</td>
+                    <td>23.000</td>
+                    <td><button onclick="tambahKeKeranjang('Mycoral Salep 5gr', 23000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Mylanta Tablet /Strip</td>
+                    <td>10.000</td>
+                    <td><button onclick="tambahKeKeranjang('Mylanta Tablet /Strip', 10000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Naraya Soyabotol 320ml</td>
+                    <td>7.000</td>
+                    <td><button onclick="tambahKeKeranjang('Naraya Soyabotol 320ml', 7000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Neuralgin rx /Strip</td>
+                    <td>13.000</td>
+                    <td><button onclick="tambahKeKeranjang('Neuralgin rx /Strip', 13000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Neurosanbe Plus Tablet /Strip</td>
+                    <td>18.000</td>
+                    <td><button onclick="tambahKeKeranjang('Neurosanbe Plus Tablet /Strip', 18000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Norelut tablet /strip</td>
+                    <td>67.000</td>
+                    <td><button onclick="tambahKeKeranjang('Norelut tablet /strip', 67000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Pamol Tablet /Strip</td>
+                    <td>12.000</td>
+                    <td><button onclick="tambahKeKeranjang('Pamol Tablet /Strip', 12000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Paramex Tablet /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Paramex Tablet /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Permen OB Herbal</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Permen OB Herbal', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Pil KB Microgynon /Kotak</td>
+                    <td>25.000</td>
+                    <td><button onclick="tambahKeKeranjang('Pil KB Microgynon /Kotak', 25000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Pimtrakol Cherry 60ml</td>
+                    <td>21.000</td>
+                    <td><button onclick="tambahKeKeranjang('Pimtrakol Cherry 60ml', 21000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Piroxicam 20mg NOVA /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Piroxicam 20mg NOVA /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Proris Sirup 60ML</td>
+                    <td>32.000</td>
+                    <td><button onclick="tambahKeKeranjang('Proris Sirup 60ML', 32000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Rebamipide INTERBAT / Strip</td>
+                    <td>25.000</td>
+                    <td><button onclick="tambahKeKeranjang('Rebamipide INTERBAT / Strip', 25000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Renovit Gold isi 30 butir /BOTOL</td>
+                    <td>108.000</td>
+                    <td><button onclick="tambahKeKeranjang('Renovit Gold isi 30 butir /BOTOL', 108000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Rohto Cool 7ml</td>
+                    <td>20.000</td>
+                    <td><button onclick="tambahKeKeranjang('Rohto Cool 7ml', 20000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Permen OB Herbal</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Permen OB Herbal', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Pil KB Microgynon /Kotak</td>
+                    <td>25.000</td>
+                    <td><button onclick="tambahKeKeranjang('Pil KB Microgynon /Kotak', 25000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Pimtrakol Cherry 60ml</td>
+                    <td>21.000</td>
+                    <td><button onclick="tambahKeKeranjang('Pimtrakol Cherry 60ml', 21000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Piroxicam 20mg NOVA /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Piroxicam 20mg NOVA /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Proris Sirup 60ML</td>
+                    <td>32.000</td>
+                    <td><button onclick="tambahKeKeranjang('Proris Sirup 60ML', 32000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Rebamipide INTERBAT / Strip</td>
+                    <td>25.000</td>
+                    <td><button onclick="tambahKeKeranjang('Rebamipide INTERBAT / Strip', 25000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Renovit Gold isi 30 butir /BOTOL</td>
+                    <td>108.000</td>
+                    <td><button onclick="tambahKeKeranjang('Renovit Gold isi 30 butir /BOTOL', 108000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Rohto Cool 7ml</td>
+                    <td>20.000</td>
+                    <td><button onclick="tambahKeKeranjang('Rohto Cool 7ml', 20000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Dexaharsen 0,5mg /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Dexaharsen 0,5mg /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Diapet Kapsul isi 10 /Strip</td>
+                    <td>6.000</td>
+                    <td><button onclick="tambahKeKeranjang('Diapet Kapsul isi 10 /Strip', 6000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Sagestam Krim 10gr</td>
+                    <td>19.000</td>
+                    <td><button onclick="tambahKeKeranjang('Sagestam Krim 10gr', 19000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Sarung Tangan Steril 6.5/Pasang</td>
+                    <td>10.000</td>
+                    <td><button onclick="tambahKeKeranjang('Sarung Tangan Steril 6.5/Pasang', 10000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Scotts Emulsion Original 400ML</td>
+                    <td>90.000</td>
+                    <td><button onclick="tambahKeKeranjang('Scotts Emulsion Original 400ML', 90000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Silex sirup 100ML</td>
+                    <td>92.000</td>
+                    <td><button onclick="tambahKeKeranjang('Silex sirup 100ML', 92000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Sodium Chloride 500ml (NACL)</td>
+                    <td>13.000</td>
+                    <td><button onclick="tambahKeKeranjang('Sodium Chloride 500ml (NACL)', 13000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Superhoid supp /supp</td>
+                    <td>10.000</td>
+                    <td><button onclick="tambahKeKeranjang('Superhoid supp /supp', 10000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Susu Cimory UHT 250ml (Semua Rasa)</td>
+                    <td>10.000</td>
+                    <td><button onclick="tambahKeKeranjang('Susu Cimory UHT 250ml (Semua Rasa)', 10000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Susu Frisian Flag Coklat 115ml</td>
+                    <td>4.000</td>
+                    <td><button onclick="tambahKeKeranjang('Susu Frisian Flag Coklat 115ml', 4000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Teosal Tablet /Strip</td>
+                    <td>3.000</td>
+                    <td><button onclick="tambahKeKeranjang('Teosal Tablet /Strip', 3000)">Tambah</button></td>
+                </tr>
+                <tr>
+                    <td>Tera-F tablet /strip</td>
+                    <td>7.000</td>
+                    <td><button onclick="tambahKeKeranjang('Tera-F tablet /strip', 7000)">Tambah</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="welcome-text">Selamat datang dan Selamat berbelanja</p>
+    </div>
+    
+    <div id="keranjang" class="content">
+        <div class="cart-container">
+            <img src="keranjang.png" alt="Keranjang">
+            <h2 style="color: #4CAF50;">Keranjang Belanja</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama Obat</th>
+                    <th>Harga (Rp)</th>
+                    <th>Tambahkan ke Keranjang</th>
+                </tr>
+            </thead>
+            <tbody id="keranjangList">
+            </tbody>
+        </table>
+        <h3>Total: Rp <span id="total">0</span></h3>
+        
+        <h2 style="color: #4CAF50;">Pembayaran</h2>
+        <input type="number" id="uangDibayar" placeholder="Masukkan jumlah uang" min="0">
+        <button onclick="prosesPembayaran()">Bayar</button>
+        <h3>Kembalian: Rp <span id="kembalian">0</span></h3>
+        <p class="welcome-text">Selamat datang dan Selamat berbelanja</p>
+    </div>
+</body>
+</html>
